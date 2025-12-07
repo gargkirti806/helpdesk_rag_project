@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    # Note: You must ensure Ollama is set up with the model you want (e.g., qwen2.5)
+
+  app:
+    build: .
+    depends_on:
+      - redis
+      - ollama
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - VECTOR_DB_PATH=/data/vector_db
+      - OLLAMA_MODEL=qwen2.5:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - /home/kirti/helpdesk_rag_project/data/vector_db:/home/kirti/helpdesk_rag_project/data/vector_db  # Add full path of vector DB folder 
+
+volumes:
+  redis-data:
